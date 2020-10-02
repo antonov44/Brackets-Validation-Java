@@ -1,0 +1,94 @@
+package com.antonov.brackets;
+
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Stack;
+
+public class BracketsValidator {
+    //region Fields
+    private File sourceFile;
+    private File configFile;
+    //endregion
+
+    //region Constructors
+    public BracketsValidator(File sourceFile, File configFile) {
+        setSourceFile(sourceFile);
+        setConfigFile(configFile);
+    }
+    //endregion
+
+    //region Setters
+    public void setSourceFile(File sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
+    public void setConfigFile(File configFile) {
+        this.configFile = configFile;
+    }
+    //endregion
+
+    //region Getters
+    public File getSourceFile() {
+        return sourceFile;
+    }
+
+    public File getConfigFile() {
+        return configFile;
+    }
+    //endregion
+
+    //region Main Methods [getInvalidBracketsOccurrence(FileReader reader, BracketsConfig config), run(),]
+    private BracketsOccurrence getInvalidBracketsOccurrence(FileReader reader, BracketsConfig config) throws IOException {
+        Stack<BracketsOccurrence> stack = new Stack<>();
+        long sourceFileLength = getSourceFile().length();
+
+        for (long i = 0; i < sourceFileLength; i++) {
+            char ch = (char) reader.read();
+            BracketsPair bracketsPair = config.getBracketsPairOrEmptyFromChar(ch);
+
+            System.out.printf("Reading... %d/%d\r", i + 1, sourceFileLength);
+
+            if (!bracketsPair.isEmpty()) {
+                if (bracketsPair.getLBracket() == ch) {
+                    stack.push(new BracketsOccurrence(bracketsPair, i, true));
+                } else if (!stack.isEmpty() && stack.peek().getBracketsPair().getLBracket() == bracketsPair.getLBracket()) {
+                    stack.pop();
+                } else {
+                    // no left bracket validation error
+                    System.out.printf("Interrupted... %d/%d\n", i + 1, sourceFileLength);
+                    return new BracketsOccurrence(bracketsPair, i, false);
+
+            }
+        }
+
+        System.out.printf("Completed... %d/%d\n", sourceFileLength, sourceFileLength);
+
+        if (!stack.isEmpty()) {
+            // no right bracket validation error
+            return stack.pop();
+        }
+
+        return new BracketsOccurrence();
+    }
+
+    public void run() throws IOException {
+        Gson gson = new Gson();
+        JsonReader jsonReader = new JsonReader(new FileReader(getConfigFile()));
+        BracketsConfig config = gson.fromJson(jsonReader, BracketsConfig.class);
+        FileReader reader = new FileReader(getSourceFile());
+
+        BracketsOccurrence parseResult = getInvalidBracketsOccurrence(reader, config);
+
+        if (parseResult.isEmpty()) {
+            System.out.println("Success!");
+        } else {
+            System.out.print("Bracket validation error here: ");
+            parseResult.printErrorValidation(getSourceFile());
+        }
+    }
+    //endregion
+}

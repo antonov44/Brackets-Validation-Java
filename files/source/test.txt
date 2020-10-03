@@ -61,7 +61,7 @@ public class BracketsValidator {
                     // no left bracket validation error
                     System.out.printf("Interrupted... %d/%d\n", i + 1, sourceFileLength);
                     return new BracketsOccurrence(bracketsPair, i, false);
-
+                }
             }
         }
 

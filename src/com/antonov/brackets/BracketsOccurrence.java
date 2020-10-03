@@ -53,7 +53,7 @@ public class BracketsOccurrence {
     }
     //endregion
 
-    //region Main Methods [isEmpty(),]
+    //region Main Methods [isEmpty(), printErrorValidation(File file)]
     public boolean isEmpty() {
         return (getBracketsPair() == null && getIndex() == null && getIsLeft() == null);
     }
